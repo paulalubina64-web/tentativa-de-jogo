@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fru-fru: Missão Administrativa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="celular">
+        <section id="t-inicio" class="tela" style="display:block">
+            <span class="frufru-img">👩🏽‍🦱</span>
+            <h1>Fru-fru Jus</h1>
+            <p style="text-align:center; color:#888">Organização Administrativa</p>
+            <button class="btn-rosa" onclick="gameController.start()">INICIAR JOGO</button>
+            <button style="background:var(--azul)" onclick="gameController.openFlashcards()">FLASHCARDS</button>
+        </section>
+
+        <section id="t-intro" class="tela">
+            <span class="frufru-img">👩🏽‍🦱</span>
+            <div class="caixa-texto">Oi! Sou a Fru-fru! Vou te levar por 30 fases para dominar o Direito Administrativo. Se você errar, eu te explico tudo no final de cada fase!</div>
+            <button class="btn-rosa" onclick="gameController.goToMap()">VAMOS LÁ!</button>
+        </section>
+
+        <section id="t-mapa" class="tela">
+            <h2>Floresta das Leis</h2>
+            <div id="lista-fases"></div>
+            <button class="btn-rosa" onclick="gameController.goToStart()">SAIR</button>
+        </section>
+
+        <section id="t-jogo" class="tela">
+            <div id="hud" style="display:flex; justify-content:space-between; font-weight:bold; color:var(--rosa-escuro)">
+                <span id="fase-txt">Fase 1</span>
+                <span id="progresso-txt">1/30</span>
+            </div>
+            <div id="container-pergunta"></div>
+            <div id="feedback" style="display:none; margin-top:20px" class="caixa-texto"></div>
+            <button id="btn-prox" class="btn-rosa" style="display:none" onclick="gameController.nextQuestion()">AVANÇAR</button>
+            <div id="controles-jogo" style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <button style="background:#eee" onclick="gameController.goToMap()">VOLTAR</button>
+                <button id="btn-dica" style="background:var(--azul)" onclick="gameController.showHint()">DICA</button>
+                <button id="btn-nao-sei" style="background:#f4d03f" onclick="gameController.markAsUnknown()">NÃO SEI</button>
+            </div>
+        </section>
+
+        <section id="t-conectar" class="tela">
+            <h2>Ligue os Pontos!</h2>
+            <div class="conectar-grid" id="grid-c"></div>
+            <button class="btn-rosa" id="btn-concluir-c" onclick="gameController.validateConnections()">CONCLUIR</button>
+        </section>
+
+        <section id="t-revisao" class="tela">
+            <span class="frufru-img">🎓</span>
+            <h2>Resumo da Fru-fru</h2>
+            <div id="erros-lista" class="caixa-texto" style="text-align:left; font-size:0.9rem"></div>
+            <button class="btn-rosa" onclick="gameController.goToMap()">VOLTAR AO MAPA</button>
+        </section>
+    </div>
+
+    <script src="js/constants.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/questionRenderer.js"></script>
+    <script src="js/gameController.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
