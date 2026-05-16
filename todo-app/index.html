@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="todo-app">
+            <!-- Header -->
+            <div class="header">
+                <h1>📝 Minhas Tarefas</h1>
+                <p class="stats" id="stats">0 tarefas · 0 completas</p>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="taskInput" 
+                        placeholder="Adicione uma nova tarefa..."
+                        class="task-input"
+                    >
+                    <select id="prioritySelect" class="priority-select">
+                        <option value="baixa">Baixa</option>
+                        <option value="media" selected>Média</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                    <button id="addBtn" class="add-btn">➕ Adicionar</button>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <button class="filter-btn active" data-filter="todas">Todas</button>
+                <button class="filter-btn" data-filter="ativas">Ativas</button>
+                <button class="filter-btn" data-filter="completas">Completas</button>
+                <button class="filter-btn" data-filter="alta">🔴 Alta</button>
+                <button class="filter-btn" data-filter="media">🟡 Média</button>
+                <button class="filter-btn" data-filter="baixa">🟢 Baixa</button>
+            </div>
+
+            <!-- Sort Section -->
+            <div class="sort-section">
+                <label>Ordenar por:</label>
+                <select id="sortSelect" class="sort-select">
+                    <option value="recente">Mais Recente</option>
+                    <option value="antiguo">Mais Antigo</option>
+                    <option value="prioridade">Prioridade</option>
+                    <option value="nome">Nome (A-Z)</option>
+                </select>
+            </div>
+
+            <!-- Tasks List -->
+            <div class="tasks-list" id="tasksList"></div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                <span class="empty-icon">✨</span>
+                <p>Nenhuma tarefa por aqui!</p>
+                <p class="empty-hint">Crie uma nova tarefa para começar</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+                <button id="exportBtn" class="action-btn">📥 Exportar</button>
+                <button id="clearBtn" class="action-btn danger">🗑️ Limpar Completas</button>
+                <button id="resetBtn" class="action-btn danger">⚠️ Resetar Tudo</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
