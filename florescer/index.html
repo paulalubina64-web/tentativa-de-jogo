@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Florescer · cronograma de estudos</title>
+  <meta name="description" content="Cronograma de estudos com revisão espaçada, intercalação, prioridades, provas e Pomodoro.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-flower">🌸</span>
+        <div>
+          <strong>Florescer</strong>
+          <small>seu jardim de estudos</small>
+        </div>
+      </div>
+      <nav id="nav" class="nav" aria-label="Seções"></nav>
+      <div class="sidebar-foot">
+        <div id="account" class="account"></div>
+        <button id="mini-timer" class="mini-timer" data-action="go" data-view="pomodoro" hidden></button>
+        <button class="btn ghost small" data-action="theme" title="Trocar tema">🌗 Tema</button>
+      </div>
+    </aside>
+    <main id="view" class="main"></main>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/srs.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/pomodoro.js"></script>
+  <script src="js/insights.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/views/entrar.js"></script>
+  <script src="js/views/rotina.js"></script>
+  <script src="js/views/boasvindas.js"></script>
+  <script src="js/views/hoje.js"></script>
+  <script src="js/views/semana.js"></script>
+  <script src="js/views/materias.js"></script>
+  <script src="js/views/provas.js"></script>
+  <script src="js/views/cartoes.js"></script>
+  <script src="js/views/pomodoro.js"></script>
+  <script src="js/views/jardim.js"></script>
+  <script src="js/views/ajustes.js"></script>
+</body>
+</html>
