@@ -58,6 +58,9 @@
         ${scaleInput('weight', s.weight)}
         ${scaleInput('difficulty', s.difficulty)}
         ${scaleInput('mastery', s.mastery)}
+        <label class="field"><span>Meta de nota <small class="muted">· de 0 a 10 (opcional). O app compara com suas notas.</small></span>
+          <input type="number" name="goal" min="0" max="10" step="0.5" value="${s.goal == null ? '' : s.goal}" placeholder="Ex.: 9">
+        </label>
         <div class="row">
           <button class="btn primary" type="submit">${editing ? 'Salvar' : 'Adicionar matéria'}</button>
           ${editing ? '<button class="btn ghost" type="button" data-action="cancel-subject">Cancelar</button>' : ''}
@@ -104,6 +107,14 @@
     const pct = maxScore ? Math.round((scoreInfo.score / maxScore) * 100) : 0;
     const level = pct > 75 ? 'alta' : pct > 45 ? 'média' : 'baixa';
     const open = F.ui.openSubject === sub.id;
+    const graded = store.state.exams.filter((e) => e.subjectId === sub.id && e.grade != null);
+    const avg = graded.length ? graded.reduce((a, e) => a + (e.grade / (e.maxGrade || 10)) * 10, 0) / graded.length : null;
+    const gradeLine =
+      sub.goal != null || avg != null
+        ? `<div class="small grade-line">🎯 Meta: <strong>${sub.goal != null ? sub.goal : '—'}</strong>${
+            avg != null ? ` · Média atual: <strong class="${sub.goal != null && avg < sub.goal ? 'warn-txt' : 'ok-txt'}">${avg.toFixed(1)}</strong>` : ''
+          }</div>`
+        : '';
     const why = [];
     if (scoreInfo.examDays !== null) why.push(`prova ${U.countdownLabel(scoreInfo.examDays)}`);
     if (sub.weight >= 4) why.push('peso alto');
@@ -129,6 +140,7 @@
           <span>Dificuldade ${F.hearts(sub.difficulty, '🔥')}</span>
           <span>Domínio ${F.hearts(sub.mastery, '🌸')}</span>
         </div>
+        ${gradeLine}
         <div class="priority">
           <span class="small">Prioridade <strong>${level}</strong></span>
           <div class="bar"><span style="width:${pct}%"></span></div>
@@ -172,7 +184,8 @@
       color: data.get('color') || F.COLORS[0],
       weight: Number(data.get('weight') || 3),
       difficulty: Number(data.get('difficulty') || 3),
-      mastery: Number(data.get('mastery') || 2)
+      mastery: Number(data.get('mastery') || 2),
+      goal: data.get('goal') === '' || data.get('goal') == null ? null : U.clamp(Number(data.get('goal')), 0, 10)
     };
     if (!payload.name) return;
     if (F.ui.editingSubject) {

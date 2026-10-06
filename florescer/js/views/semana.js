@@ -18,6 +18,7 @@
     const cols = days
       .map((day, i) => {
         const exams = st.exams.filter((e) => e.date === day.date);
+        const life = (day.life || []).filter((x) => !x.blocksStudy);
         const minutes = day.blocks.reduce((a, b) => a + b.minutes, 0);
         const reviews = day.blocks.reduce((a, b) => a + b.reviews.length, 0);
         const items = day.blocks
@@ -44,9 +45,10 @@
               const s = store.subject(e.subjectId);
               return `<div class="wk-exam">🎯 ${U.esc(e.title || e.kind)}${s ? ' · ' + s.emoji : ''}</div>`;
             }).join('')}
+            ${life.length ? `<p class="wk-life">${life.map((x) => `<span title="${U.esc(x.title)}${x.start ? ' ' + x.start : ''}">${x.emoji}</span>`).join('')}</p>` : ''}
             ${
               day.off
-                ? '<p class="muted small center">🌙 descanso</p>'
+                ? `<p class="muted small center">${day.offReason ? '📌 ' + U.esc(day.offReason) : '🌙 descanso'}</p>`
                 : `<p class="muted small">${U.duration(minutes)} · ${reviews} revisões</p><ul>${items}</ul>`
             }
           </section>`;

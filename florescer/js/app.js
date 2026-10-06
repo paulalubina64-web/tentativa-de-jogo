@@ -7,13 +7,16 @@
 
   F.COLORS = ['#F9A8D4', '#C4B5FD', '#A7F3D0', '#FDE68A', '#BAE6FD', '#FDBA74', '#FCA5A5', '#D9F99D', '#F5D0FE', '#99F6E4'];
   F.EMOJIS = ['📚', '⚖️', '🏛️', '📜', '🧠', '🔬', '🧮', '🌍', '💼', '🩺', '🎨', '🧬', '✍️', '💡', '🦋', '🍓', '🐝', '🌙'];
+  F.AVATARS = ['🌸', '🌷', '🌻', '🦋', '🐰', '🐱', '🦊', '🐼', '🍓', '🍒', '☁️', '⭐', '🌙', '🔥', '📚', '💜'];
 
   const VIEWS = [
     { id: 'hoje', label: 'Hoje', icon: '🌷' },
     { id: 'semana', label: 'Semana', icon: '🗓️' },
     { id: 'materias', label: 'Matérias', icon: '📚' },
     { id: 'provas', label: 'Provas', icon: '🎯' },
+    { id: 'cartoes', label: 'Cartões', icon: '🃏' },
     { id: 'pomodoro', label: 'Pomodoro', icon: '🍅' },
+    { id: 'rotina', label: 'Minha rotina', icon: '🧺' },
     { id: 'jardim', label: 'Meu jardim', icon: '🌸' },
     { id: 'ajustes', label: 'Ajustes', icon: '⚙️' }
   ];
@@ -58,6 +61,17 @@
     setTimeout(() => el.remove(), 3300);
   };
 
+  F.insightCards = (items) =>
+    items
+      .map(
+        (i) => `<div class="insight">
+          <span class="insight-emoji">${i.emoji}</span>
+          <span>${U.esc(i.text)}</span>
+          ${i.view ? `<button class="btn ghost tiny" data-action="go" data-view="${i.view}">ver</button>` : ''}
+        </div>`
+      )
+      .join('');
+
   F.minutesOn = (dateKey, subjectId) =>
     store.state.sessions
       .filter((s) => s.date === dateKey && (!subjectId || s.subjectId === subjectId))
@@ -66,6 +80,7 @@
   F.streak = () => {
     const days = new Set(store.state.sessions.map((s) => s.date));
     store.state.topics.forEach((t) => (t.history || []).forEach((h) => days.add(h.date)));
+    store.state.cards.forEach((c) => (c.history || []).forEach((h) => days.add(h.date)));
     let d = U.today();
     if (!days.has(d)) d = U.addDays(d, -1);
     let n = 0;
@@ -75,6 +90,35 @@
     }
     return n;
   };
+
+  /* ---------- conta na barra lateral ---------- */
+
+  F.renderAccount = () => {
+    const box = document.getElementById('account');
+    if (!box) return;
+    if (!F.auth.user) {
+      box.innerHTML = '';
+      return;
+    }
+    const p = store.state.profile;
+    const sync = {
+      local: '💾 salvo neste navegador',
+      salvando: '☁️ salvando…',
+      salvo: '☁️ salvo na nuvem',
+      offline: '⚠️ sem conexão: salvo aqui e sincronizo depois'
+    }[F.auth.sync];
+    box.innerHTML = `
+      <div class="account-who">
+        <span class="account-avatar">${p.avatar || '🌸'}</span>
+        <div>
+          <strong>${U.esc(p.name || F.auth.user.name || 'Você')}</strong>
+          <small class="muted">${sync}</small>
+        </div>
+      </div>
+      <button class="btn ghost tiny" data-action="sign-out">${F.auth.mode === 'local' ? '↔ Trocar conta' : 'Sair'}</button>`;
+  };
+
+  F.action('sign-out', () => F.auth.signOut());
 
   /* ---------- navegação ---------- */
 
@@ -86,14 +130,47 @@
     ).join('');
   }
 
-  F.render = () => {
+  function applyTheme() {
     document.documentElement.dataset.theme = store.state.settings.theme === 'noite' ? 'dark' : 'light';
+  }
+
+  // Telas sem menu (entrar / questionário).
+  function bare(on) {
+    document.body.classList.toggle('bare', on);
+  }
+
+  F.render = () => {
+    if (!F.auth.user) return F.renderAuth();
+    applyTheme();
+    if (!store.state.profile.onboarded) {
+      bare(true);
+      document.getElementById('view').innerHTML = F.views.boasvindas.render();
+      return;
+    }
+    bare(false);
     renderNav();
-    const view = F.views[F.ui.view];
+    F.renderAccount();
+    const view = F.views[F.ui.view] || F.views.hoje;
     const root = document.getElementById('view');
-    root.innerHTML = view ? view.render() : '';
-    if (view && view.after) view.after(root);
+    root.innerHTML = view.render();
+    if (view.after) view.after(root);
     renderMiniTimer();
+  };
+
+  F.renderAuth = () => {
+    bare(true);
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('florescer:tema') === 'noite' ? 'dark' : 'light';
+    } catch (e) {
+      /* ok */
+    }
+    document.getElementById('view').innerHTML = F.views.entrar.render();
+  };
+
+  F.enterApp = () => {
+    const hash = location.hash.replace('#', '');
+    F.ui.view = VIEWS.some((v) => v.id === hash) ? hash : 'hoje';
+    F.render();
   };
 
   F.go = (id) => {
@@ -111,6 +188,11 @@
 
   F.action('theme', () => {
     store.state.settings.theme = store.state.settings.theme === 'noite' ? 'dia' : 'noite';
+    try {
+      localStorage.setItem('florescer:tema', store.state.settings.theme);
+    } catch (e) {
+      /* ok */
+    }
     store.save();
     F.render();
   });
@@ -129,6 +211,7 @@
   }
 
   F.pomodoro.onTick(() => {
+    if (!F.auth.user) return;
     if (F.ui.view === 'pomodoro' && F.views.pomodoro.tick) F.views.pomodoro.tick();
     renderMiniTimer();
   });
@@ -160,19 +243,14 @@
     if (fn) fn(el, ev);
   });
 
-  // Ao virar o dia com a aba aberta, refaz a tela (e o plano) automaticamente.
+  // Ao virar o dia com a aba aberta, refaz a tela (e o plano).
   let lastDay = U.today();
   setInterval(() => {
     if (U.today() !== lastDay) {
       lastDay = U.today();
-      F.render();
+      if (F.auth.user) F.render();
     }
   }, 60000);
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const hash = location.hash.replace('#', '');
-    if (VIEWS.some((v) => v.id === hash)) F.ui.view = hash;
-    if (!store.state.subjects.length && !hash) F.ui.view = 'hoje';
-    F.render();
-  });
+  window.addEventListener('DOMContentLoaded', () => F.auth.init());
 })(window.Florescer = window.Florescer || {});

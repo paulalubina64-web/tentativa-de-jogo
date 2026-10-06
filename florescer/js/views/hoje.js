@@ -6,32 +6,16 @@
   const store = F.store;
   const planner = F.planner;
 
-  function onboarding() {
-    const st = store.state;
-    const steps = [
-      { done: !!st.profile.name, text: 'Me conta seu nome', view: 'ajustes' },
-      { done: st.subjects.length > 0, text: 'Cadastre suas matérias (com peso e dificuldade)', view: 'materias' },
-      { done: st.topics.length > 0, text: 'Adicione os conteúdos de cada matéria', view: 'materias' },
-      { done: st.exams.length > 0, text: 'Coloque as datas das provas', view: 'provas' }
-    ];
+  function noSubjects() {
+    return F.empty('🌱', 'Seu jardim começa com uma matéria', 'Cadastre suas matérias e eu monto o seu dia sozinho.', '<button class="btn primary" data-action="go" data-view="materias">Cadastrar matérias</button>');
+  }
+
+  function lifeCard(x) {
     return `
-      <section class="card welcome">
-        <div class="welcome-art">🌱</div>
-        <div>
-          <h2>Seu jardim começa aqui</h2>
-          <p class="muted">Cada matéria vai virar uma flor. Quanto mais você estuda e revisa, mais ela floresce.</p>
-          <ol class="steps">
-            ${steps
-              .map(
-                (s) => `<li class="${s.done ? 'done' : ''}">
-                  <span class="step-dot">${s.done ? '✓' : ''}</span>
-                  <button class="link" data-action="go" data-view="${s.view}">${s.text}</button>
-                </li>`
-              )
-              .join('')}
-          </ol>
-        </div>
-      </section>`;
+      <article class="life-card">
+        <div class="block-time"><strong>${x.start}</strong><span>${x.end}</span></div>
+        <div><span class="life-emoji">${x.emoji}</span> <strong>${U.esc(x.title)}</strong> <small class="muted">${x.kind === 'evento' ? 'evento' : 'compromisso'}</small></div>
+      </article>`;
   }
 
   function examBanner() {
@@ -156,35 +140,63 @@
     const pct = planned ? U.clamp(Math.round((studied / planned) * 100), 0, 100) : 0;
     const doneBlocks = plan.blocks.filter((b) => b.done).length;
     const streak = F.streak();
+    const tips = st.subjects.length ? F.insights.list(st).filter((i) => i.view !== 'cartoes' || !/esperando/.test(i.text)).slice(0, 2) : [];
 
+    const life = plan.life || [];
     let body = '';
     if (!st.subjects.length) {
-      body = onboarding();
+      body = noSubjects();
     } else if (plan.off) {
       body = F.empty(
-        '🌙',
-        'Hoje é dia de descanso',
-        'Descansar também faz parte: é dormindo que o cérebro consolida o que você estudou.',
+        plan.offReason ? '📌' : '🌙',
+        plan.offReason ? `Hoje é dia de: ${U.esc(plan.offReason)}` : 'Hoje é dia de descanso',
+        plan.offReason
+          ? 'Aproveite! O estudo de hoje já foi redistribuído pelos outros dias.'
+          : 'Descansar também faz parte: é dormindo que o cérebro consolida o que você estudou.',
         '<button class="btn primary" data-action="force-day">Quero estudar mesmo assim</button>'
       );
     } else if (!plan.blocks.length) {
-      body = F.empty('🫧', 'Nada planejado', 'Confira em Ajustes se seus períodos de estudo têm minutos.', '');
+      body = F.empty(
+        '🫧',
+        plan.full ? 'Sem espaço livre hoje' : 'Nada planejado',
+        plan.full
+          ? 'Seus compromissos ocupam todos os horários livres de hoje (ou o dia já acabou). Tudo bem: o que faltou vai para os próximos dias.'
+          : 'Confira em Minha rotina se você tem horas de estudo para hoje.',
+        '<button class="btn ghost" data-action="go" data-view="rotina">Abrir Minha rotina</button>'
+      );
     } else {
-      const periods = st.settings.periods
-        .map((p) => {
-          const blocks = plan.blocks.filter((b) => b.period === p.id);
-          if (!blocks.length) return '';
-          return `
+      body = planner.PERIODS.map((p) => {
+        const items = plan.blocks
+          .filter((b) => b.period === p.id)
+          .map((b) => ({ at: b.start, html: blockCard(b) }))
+          .concat(
+            life
+              .filter((x) => x.start && planner.periodOf(U.toMinutes(x.start)) === p.id)
+              .map((x) => ({ at: x.start, html: lifeCard(x) }))
+          )
+          .sort((a, b) => a.at.localeCompare(b.at));
+        if (!items.length) return '';
+        return `
             <section class="period">
-              <h3 class="period-title">${p.emoji} ${U.esc(p.label)} <small class="muted">a partir das ${p.start}</small></h3>
-              ${blocks.map(blockCard).join('')}
+              <h3 class="period-title">${p.emoji} ${p.label}</h3>
+              ${items.map((i) => i.html).join('')}
             </section>`;
-        })
-        .join('');
-      body = periods;
+      }).join('');
     }
 
     const banners = [];
+    const allDay = life.filter((x) => x.allDay && !x.blocksStudy);
+    if (allDay.length) {
+      banners.push(`<div class="banner soft"><span>📌 Hoje: ${allDay.map((x) => U.esc(x.title)).join(', ')}</span></div>`);
+    }
+    const cardsDue = F.srs.dueCards(st, today).length;
+    if (cardsDue) {
+      banners.push(`
+        <div class="banner soft">
+          <span>🃏 <strong>${cardsDue} cartão${cardsDue > 1 ? 'ões' : ''}</strong> para revisar hoje. Uns 5 minutinhos, ótimo para começar.</span>
+          <button class="btn primary small" data-action="go" data-view="cartoes">Revisar</button>
+        </div>`);
+    }
     const missed = planner.missedBefore(st, today);
     if (missed && st.subjects.length && plan.noticeDismissed !== missed.date) {
       banners.push(`
@@ -239,6 +251,7 @@
       }
 
       ${banners.join('')}
+      ${tips.length ? `<section class="insights">${F.insightCards(tips)}</section>` : ''}
       ${body}
 
       ${

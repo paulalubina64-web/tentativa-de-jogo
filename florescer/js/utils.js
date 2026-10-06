@@ -39,6 +39,15 @@
       const txt = U.formatDate(key, { weekday: 'long', day: 'numeric', month: 'long' });
       return txt.charAt(0).toUpperCase() + txt.slice(1);
     },
+    // Segunda-feira da semana da data (a semana de estudos começa na segunda).
+    weekStart(key) {
+      const wd = U.weekday(key);
+      return U.addDays(key, wd === 0 ? -6 : 1 - wd);
+    },
+    nowMinutes() {
+      const d = new Date();
+      return d.getHours() * 60 + d.getMinutes();
+    },
     weekdayShort(key) {
       return U.formatDate(key, { weekday: 'short' }).replace('.', '');
     },

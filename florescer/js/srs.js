@@ -18,8 +18,30 @@
     facil: { label: 'Fácil', emoji: '🤩', delta: 2 }
   };
 
+  // Tipos de erro do caderno de erros, cada um com o "remédio" certo.
+  const ERROR_TYPES = {
+    nao_sabia: { label: 'Não sabia o conteúdo', emoji: '🕳️', advice: 'Volte à teoria desse ponto e crie 2 flashcards com o que faltava.' },
+    confundi: { label: 'Confundi conceitos parecidos', emoji: '🔀', advice: 'Monte um quadro comparativo lado a lado (semelhanças × diferenças).' },
+    interpretacao: { label: 'Interpretei errado o enunciado', emoji: '🔍', advice: 'Sublinhe palavras-chave (exceto, salvo, sempre, nunca) antes de responder.' },
+    distracao: { label: 'Distração ou pressa', emoji: '💨', advice: 'Treine com tempo, mas releia a alternativa escolhida antes de marcar.' },
+    esqueci: { label: 'Sabia, mas esqueci', emoji: '🫥', advice: 'Sinal de que a revisão espaçada precisa ser mais curta: marque "difícil" nas revisões.' }
+  };
+
   const srs = {
     QUALITY,
+    ERROR_TYPES,
+
+    newCard(state, data) {
+      const iv = state.settings.reviewIntervals;
+      return Object.assign(
+        { id: F.utils.uid(), createdAt: U.today(), status: 'estudado', step: 0, nextReview: U.addDays(U.today(), iv[0]), history: [] },
+        data
+      );
+    },
+
+    dueCards(state, dateKey) {
+      return state.cards.filter((c) => c.nextReview && c.nextReview <= dateKey);
+    },
 
     markStudied(state, topic, dateKey) {
       const iv = state.settings.reviewIntervals;
